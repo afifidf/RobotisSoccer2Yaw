@@ -21,6 +21,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/string.hpp>
+#include <std_msgs/msg/float64.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 
 #include "robotis_controller_msgs/msg/status_msg.hpp"
@@ -80,6 +81,7 @@ private:
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr button_pub_;
   rclcpp::Publisher<robotis_controller_msgs::msg::StatusMsg>::SharedPtr status_msg_pub_;
   rclcpp::Publisher<robotis_controller_msgs::msg::SyncWriteItem>::SharedPtr dxl_power_msg_pub_;
+  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr yaw_pub_;
 };
 
 }

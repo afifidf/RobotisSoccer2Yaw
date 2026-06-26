@@ -1007,6 +1007,16 @@ void RobotisController::process()
 
                 // change sensor_state
                 sensor->sensor_state_->bulk_read_table_[item->item_name_] = data;
+                // debug
+                if (item->item_name_ == "yaw")
+                {
+                    RCLCPP_INFO(
+                        this->get_logger(),
+                        "BulkRead yaw = %u (0x%04X)",
+                        data,
+                        data
+                    );
+                }
               }
             }
 

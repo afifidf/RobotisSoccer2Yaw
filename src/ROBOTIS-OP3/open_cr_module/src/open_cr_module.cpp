@@ -85,6 +85,7 @@ void OpenCRModule::queueThread()
   imu_pub_ = this->create_publisher<sensor_msgs::msg::Imu>("/robotis/open_cr/imu", 1);
   button_pub_ = this->create_publisher<std_msgs::msg::String>("/robotis/open_cr/button", 1);
   dxl_power_msg_pub_ = this->create_publisher<robotis_controller_msgs::msg::SyncWriteItem>("/robotis/sync_write_item", 1);
+  yaw_pub_ = this->create_publisher<std_msgs::msg::Float64>("/robotis/open_cr/yaw", 1);
 
   rclcpp::WallRate rate(1000.0 / control_cycle_msec_);
   while (rclcpp::ok())
@@ -100,6 +101,8 @@ void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *>
   if (sensors["open-cr"] == NULL)
     return;
 
+  RCLCPP_INFO(this->get_logger(), "PROCESS()");
+
   int16_t gyro_x = sensors["open-cr"]->sensor_state_->bulk_read_table_["gyro_x"];
   int16_t gyro_y = sensors["open-cr"]->sensor_state_->bulk_read_table_["gyro_y"];
   int16_t gyro_z = sensors["open-cr"]->sensor_state_->bulk_read_table_["gyro_z"];
@@ -108,11 +111,24 @@ void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *>
   int16_t acc_y = sensors["open-cr"]->sensor_state_->bulk_read_table_["acc_y"];
   int16_t acc_z = sensors["open-cr"]->sensor_state_->bulk_read_table_["acc_z"];
 
+  // tambahan yaw
+  int16_t yaw_raw = sensors["open-cr"]->sensor_state_->bulk_read_table_["yaw"];
+  int16_t pitch_raw = sensors["open-cr"]->sensor_state_->bulk_read_table_["pitch"];
+  int16_t roll_raw = sensors["open-cr"]->sensor_state_->bulk_read_table_["roll"];
+
   uint16_t present_volt = sensors["open-cr"]->sensor_state_->bulk_read_table_["present_voltage"];
 
   result_["gyro_x"] = lowPassFilter(0.4, -getGyroValue(gyro_x), previous_result_["gyro_x"]);
   result_["gyro_y"] = lowPassFilter(0.4, -getGyroValue(gyro_y), previous_result_["gyro_y"]);
   result_["gyro_z"] = lowPassFilter(0.4, getGyroValue(gyro_z), previous_result_["gyro_z"]);
+
+  // tambahan
+  result_["yaw"] = yaw_raw;
+  result_["roll"] = roll_raw;
+  result_["pitch"] = pitch_raw;
+
+  RCLCPP_INFO(this->get_logger(), "YAW=%d", yaw_raw);
+  // =================================================
 
   RCLCPP_INFO_EXPRESSION(this->get_logger(), DEBUG_PRINT, " ======================= Gyro ======================== ");
   RCLCPP_INFO_EXPRESSION(this->get_logger(), DEBUG_PRINT,"Raw : %d, %d, %d", gyro_x, gyro_y, gyro_z);
@@ -145,6 +161,10 @@ void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *>
   handleVoltage(result_["present_voltage"]);
 
   publishIMU();
+
+  std_msgs::msg::Float64 yaw_msg;
+  yaw_msg.data = result_["yaw"] / 10.0;
+  yaw_pub_->publish(yaw_msg);
 
   previous_result_["gyro_x_prev"] = result_["gyro_x"];
   previous_result_["gyro_y_prev"] = result_["gyro_y"];
@@ -186,11 +206,9 @@ void OpenCRModule::publishIMU()
   //Estimation of roll and pitch based on accelerometer data, see http://www.nxp.com/files/sensors/doc/app_note/AN3461.pdf
   double mui = 0.01;
   double sign = copysign(1.0, result_["acc_z"]);
-  double roll = atan2(result_["acc_y"],
-                      sign * sqrt(result_["acc_z"] * result_["acc_z"] + mui * result_["acc_x"] * result_["acc_x"]));
-  double pitch = atan2(-result_["acc_x"],
-                       sqrt(result_["acc_y"] * result_["acc_y"] + result_["acc_z"] * result_["acc_z"]));
-  double yaw = 0.0;
+  double roll   = result_["roll"] / 10.0 * DEGREE2RADIAN;
+  double pitch  = result_["pitch"] / 10.0 * DEGREE2RADIAN;
+  double yaw    = result_["yaw"] / 10.0 * DEGREE2RADIAN;
 
   Eigen::Quaterniond orientation = robotis_framework::convertRPYToQuaternion(roll, pitch, yaw);
 
