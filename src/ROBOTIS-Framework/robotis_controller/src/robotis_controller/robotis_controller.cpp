@@ -1010,12 +1010,12 @@ void RobotisController::process()
                 // debug
                 if (item->item_name_ == "yaw")
                 {
-                    RCLCPP_INFO(
-                        this->get_logger(),
-                        "BulkRead yaw = %u (0x%04X)",
-                        data,
-                        data
-                    );
+                    // RCLCPP_INFO(
+                    //     this->get_logger(),
+                    //     "BulkRead yaw = %u (0x%04X)",
+                    //     data,
+                    //     data
+                    // );
                 }
               }
             }
