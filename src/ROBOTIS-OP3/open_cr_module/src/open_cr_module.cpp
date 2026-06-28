@@ -101,7 +101,7 @@ void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *>
   if (sensors["open-cr"] == NULL)
     return;
 
-  RCLCPP_INFO(this->get_logger(), "PROCESS()");
+  // RCLCPP_INFO(this->get_logger(), "PROCESS()");
 
   int16_t gyro_x = sensors["open-cr"]->sensor_state_->bulk_read_table_["gyro_x"];
   int16_t gyro_y = sensors["open-cr"]->sensor_state_->bulk_read_table_["gyro_y"];
@@ -127,7 +127,7 @@ void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *>
   result_["roll"] = roll_raw;
   result_["pitch"] = pitch_raw;
 
-  RCLCPP_INFO(this->get_logger(), "YAW=%d", yaw_raw);
+  // RCLCPP_INFO(this->get_logger(), "YAW=%d", yaw_raw);
   // =================================================
 
   RCLCPP_INFO_EXPRESSION(this->get_logger(), DEBUG_PRINT, " ======================= Gyro ======================== ");

@@ -30,7 +30,7 @@ HeadControlModule::HeadControlModule()
     is_direct_control_(true),
     tra_count_(0),
     tra_size_(0),
-    moving_time_(3.0),
+    moving_time_(0.01),
     scan_state_(NoScan),
     has_goal_position_(false),
     angle_unit_(35),
@@ -48,7 +48,7 @@ HeadControlModule::HeadControlModule()
 
   max_angle_[using_joint_name_["head_pan"]] = 85 * DEGREE2RADIAN;
   min_angle_[using_joint_name_["head_pan"]] = -85 * DEGREE2RADIAN;
-  max_angle_[using_joint_name_["head_tilt"]] = 30 * DEGREE2RADIAN;
+  max_angle_[using_joint_name_["head_tilt"]] = 45 * DEGREE2RADIAN;
   min_angle_[using_joint_name_["head_tilt"]] = -75 * DEGREE2RADIAN;
 
   target_position_ = Eigen::MatrixXd::Zero(1, result_.size());
@@ -127,7 +127,7 @@ void HeadControlModule::setHeadJoint(const sensor_msgs::msg::JointState::SharedP
   }
 
   // moving time
-  moving_time_ = is_offset ? 0.1 : 1.0;               // default : 1 sec
+  // moving_time_ = is_offset ? 0.1 : 1.0;               // default : 1 sec
 
   // set target joint angle
   target_position_ = goal_position_;        // default
@@ -160,10 +160,10 @@ void HeadControlModule::setHeadJoint(const sensor_msgs::msg::JointState::SharedP
 
       // set time
       //double angle_unit = 35 * M_PI / 180;
-      double angle_unit = is_offset ? (angle_unit_ * M_PI / 180 * 1.5) : (angle_unit_ * M_PI / 180);
-      double calc_moving_time = fabs(goal_position_.coeff(0, joint_index) - target_position_.coeff(0, joint_index)) / angle_unit;
-      if (calc_moving_time > moving_time_)
-        moving_time_ = calc_moving_time;
+      // double angle_unit = is_offset ? (angle_unit_ * M_PI / 180 * 1.5) : (angle_unit_ * M_PI / 180);
+      // double calc_moving_time = fabs(goal_position_.coeff(0, joint_index) - target_position_.coeff(0, joint_index)) / angle_unit;
+      // if (calc_moving_time > moving_time_)
+      //   moving_time_ = calc_moving_time;
 
       if (DEBUG)
         std::cout << " - joint : " << joint_name << ", Index : " << joint_index << "\n     Target Angle : " << target_position_.coeffRef(0, joint_index) << ", Curr Goal : " << goal_position_.coeff(0, joint_index)
@@ -447,7 +447,7 @@ void HeadControlModule::generateScanTra(const int head_direction)
   }
 
   // set moving time
-  moving_time_ = 0.5;               // default : 0.5 sec
+  moving_time_ = 0.1;               // default : 0.5 sec
 
   for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_it = result_.begin();
        state_it != result_.end(); state_it++)
